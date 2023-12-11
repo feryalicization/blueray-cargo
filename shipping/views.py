@@ -1,4 +1,3 @@
-# views.py
 from rest_framework import generics
 from .models import *
 from .serializers import *
@@ -15,7 +14,9 @@ from django.shortcuts import get_object_or_404
 from django.db.models import F
 from rest_framework.views import APIView
 from django.conf import settings
-from decimal import Decimal
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.authtoken.models import Token
+
 
 
 
@@ -30,6 +31,19 @@ class UserRegistrationView(generics.CreateAPIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
     
 
+class CustomObtainAuthToken(ObtainAuthToken):
+    serializer_class = CustomAuthTokenSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        token, created = Token.objects.get_or_create(user=user)
+
+        return Response({
+            'token': f'Token {token.key}'
+        })
+    
 
 class CountryListCreateAPIView(generics.ListCreateAPIView):
     queryset = Country.objects.all()
@@ -43,6 +57,8 @@ class CountryListCreateAPIView(generics.ListCreateAPIView):
 class CountryDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Country.objects.all()
     serializer_class = CountrySerializer
+    authentication_classes = [TokenAuthentication] 
+    permission_classes = [IsAuthenticated] 
 
 
 
@@ -51,16 +67,22 @@ class CategoryListCreateAPIView(generics.ListCreateAPIView):
     serializer_class = CategorySerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = CategoryFilter
+    authentication_classes = [TokenAuthentication] 
+    permission_classes = [IsAuthenticated] 
 
 
 class CategoryDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
+    authentication_classes = [TokenAuthentication] 
+    permission_classes = [IsAuthenticated] 
 
 
 # ==========================================================================
 
 class CalculateFreight(APIView):
+    authentication_classes = [TokenAuthentication] 
+    permission_classes = [IsAuthenticated] 
     @swagger_auto_schema(request_body=CalculateFreightRequestSerializer)
     def post(self, request, *args, **kwargs):
         serializer = CalculateFreightRequestSerializer(data=request.data)
@@ -123,6 +145,8 @@ class CalculateFreight(APIView):
 
 
 class DesinasiView(APIView):
+    authentication_classes = [TokenAuthentication] 
+    permission_classes = [IsAuthenticated] 
     @swagger_auto_schema(query_serializer=DesinasiFilterSerializer)
     def get(self, request, *args, **kwargs):
         url = 'https://api.rajaongkir.com/starter/city'

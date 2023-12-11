@@ -2,6 +2,7 @@
 from rest_framework import serializers
 from .models import Country, Category, Destination
 from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 
 
 class CountrySerializer(serializers.ModelSerializer):
@@ -43,3 +44,33 @@ class CalculateFreightRequestSerializer(serializers.Serializer):
     category_id = serializers.IntegerField()
     destination_id = serializers.IntegerField()
     weight = serializers.FloatField()
+
+
+
+
+class CustomAuthTokenSerializer(serializers.Serializer):
+    email = serializers.EmailField(label="Email")
+    password = serializers.CharField(
+        label="Password",
+        style={'input_type': 'password'},
+        trim_whitespace=False,
+    )
+
+    def validate(self, attrs):
+        email = attrs.get('email')
+        password = attrs.get('password')
+
+        if email and password:
+            user = get_user_model().objects.filter(email=email).first()
+
+            if user:
+                if not user.check_password(password):
+                    raise serializers.ValidationError('Invalid password')
+            else:
+                raise serializers.ValidationError('User not found')
+
+        else:
+            raise serializers.ValidationError('Must include "email" and "password"')
+
+        attrs['user'] = user
+        return attrs

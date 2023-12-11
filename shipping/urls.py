@@ -23,13 +23,14 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     path('countries/', CountryListCreateAPIView.as_view(), name='country-list'),
-    path('country/<int:pk>/', CountryDetailAPIView.as_view(), name='country-detail'),
+    path('countries/<int:pk>/', CountryDetailAPIView.as_view(), name='country-detail'),
     path('categories/', CategoryListCreateAPIView.as_view(), name='category-list'),
-    path('category/<int:pk>/', CategoryDetailAPIView.as_view(), name='category-detail'),
+    path('categories/<int:pk>/', CategoryDetailAPIView.as_view(), name='category-detail'),
     path('api/calculate/', CalculateFreight.as_view(), name='calculate_freight'),
     path('api/destination/', DesinasiView.as_view(), name='destination'),
 
-    path('api/token/', obtain_auth_token, name='api_token'),
+    # path('api/token/', obtain_auth_token, name='api_token'),
+    path('api/token/', CustomObtainAuthToken.as_view(), name='api_token'),
     path('api/register/', UserRegistrationView.as_view(), name='user_register'),
 
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
